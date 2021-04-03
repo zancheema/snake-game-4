@@ -8,27 +8,18 @@ exports.sendNotification = functions.firestore
     .document("users/{userId}/notifications/{notificationId}")
     .onCreate((snap, context) => {
       const values = snap.data();
-      const notificationId = values.notificationId;
+      const token = values.receiverToken;
 
-      if (notificationId == "friendRequest") {
-        sendFriendRequest(values);
-      }
+      const payload = {
+        notification: {
+          title: values.title,
+          body: values.body,
+        },
+      };
+      const options = {
+        priority: "high",
+        timeToLive: 60 * 60 *24,
+      };
+
+      admin.messaging().sendToDevice(token, payload, options);
     });
-
-/**
- * send friend request notification
- * @param {map} values arguments for generating payload
- */
-function sendFriendRequest(values) {
-  const token = values.messagingToken;
-
-  const payload = {
-    notification: {
-      title: values.username,
-      body: "Lets be friends",
-    },
-  };
-
-  admin.messaging().sendToDevice(token, payload);
-}
-
